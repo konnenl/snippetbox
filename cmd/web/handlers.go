@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
+	"html/template"
+	"log"
 )
 
 func home(w http.ResponseWriter, r *http.Request){
@@ -11,7 +13,25 @@ func home(w http.ResponseWriter, r *http.Request){
 		http.NotFound(w, r)
 		return
 	}
-	w.Write([]byte("Home page"))
+
+	files := []string{
+		"./ui/html/base.html",
+		"./ui/html/pages/home.html",
+		"./ui/html/partials/nav.html",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil{
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.ExecuteTemplate(w, "base", nil)
+	if err != nil{
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request){
