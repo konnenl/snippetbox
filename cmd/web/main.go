@@ -7,12 +7,14 @@ import (
 	"flag"
 	"os"
 	"github.com/joho/godotenv"
+	"github.com/konnenl/snippetbox/internal/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type application struct{
 	errorLog *log.Logger
 	infoLog *log.Logger
+	snippets *models.SnippetModel
 }
 
 func main(){
@@ -41,6 +43,7 @@ func main(){
 	app := &application{
 		errorLog: errorLog,
 		infoLog: infoLog,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	srv := &http.Server{
