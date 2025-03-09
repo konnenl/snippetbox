@@ -7,9 +7,12 @@ import (
 	"flag"
 	"os"
 	"html/template"
+	"time"
 	"github.com/joho/godotenv"
 	"github.com/konnenl/snippetbox/internal/models"
 	"github.com/go-playground/form/v4"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -19,6 +22,7 @@ type application struct{
 	snippets *models.SnippetModel
 	templateCache map[string]*template.Template
 	formDecoder *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main(){
@@ -50,12 +54,18 @@ func main(){
 	}
 	formDecoder := form.NewDecoder()
 
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog: infoLog,
 		snippets: &models.SnippetModel{DB: db},
 		templateCache: templateCache,
 		formDecoder: formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{
