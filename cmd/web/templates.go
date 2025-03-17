@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/konnenl/snippetbox/internal/models"
 	"html/template"
 	"path/filepath"
-	"fmt"
+	"io/fs"
 	"time"
+	"github.com/konnenl/snippetbox/internal/models"
+	"github.com/konnenl/snippetbox/ui"
 )
 
 type templateData struct{
@@ -28,8 +29,7 @@ var functions = template.FuncMap{
 
 func newTemplateCache() (map[string]*template.Template, error){
 	сache := map[string]*template.Template{}
-	pages, err := filepath.Glob("./ui/html/pages/*.html")
-	fmt.Println(pages)
+	pages, err := fs.Glob(ui.Files, "html/pages/*.html")
 	if err != nil{
 		return nil, err
 	}
@@ -37,17 +37,13 @@ func newTemplateCache() (map[string]*template.Template, error){
 	for _, page := range pages{
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
-		if err != nil{
-			return nil, err
+		patterns := []string{
+			"html/base.html",
+			"html/partials/*.html",
+			page,
 		}
 
-		ts, err = ts.ParseGlob("./ui/html/partials/*.html")
-		if err != nil{
-			return nil, err
-		}
-
-		ts, err = ts.ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil{
 			return nil, err
 		}
